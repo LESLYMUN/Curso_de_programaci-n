@@ -1,0 +1,70 @@
+---
+title: "web i"
+author: "Lesly Alvarado"
+format: html
+ toc: true
+   toc-location: left
+   embed-resources: true
+   number-sections: true
+   output-file: index
+   theme: darkly
+editor_options: 
+  chunk_output_type: console
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+----
+# Mi página web
+
+1.  Tener mi proyecto
+1.  Conectar mi proyecto a GitHub
+1.  Tener un archivo en html llamado "index.html" 
+1.  Hacer push al repositorio
+1.  Activar GitHub pages
+
+source('https://inkaverse.com/setup.r')
+#Anaisis de datos 
+
+# Importar datos
+
+```{r}
+# formato csv
+dss <- read.csv(file = "datos 2/LA MOLINA 2014 POTATO WUE (FB) - fb.csv", header = TRUE, sep = "," )
+
+      
+        
+
+
+
+
