@@ -1,70 +1,240 @@
 ---
-title: "web i"
-author: "Lesly Alvarado"
-format: html
- toc: true
-   toc-location: left
-   embed-resources: true
-   number-sections: true
-   output-file: index
-   theme: darkly
+title: "Mi pagina web"
+author: "LESLY ALVARADO M"
+format:
+  html:
+    toc: true
+    toc-location: left
+    embed-resources: true
+    number-sections: true
+    output-file: index
+    theme: darkly
 editor_options: 
   chunk_output_type: console
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
+---
 
 ## Quarto
 
 Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
 
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
-
-You can add options to executable code like this
-
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
-
-----
 # Mi página web
 
 1.  Tener mi proyecto
-1.  Conectar mi proyecto a GitHub
-1.  Tener un archivo en html llamado "index.html" 
-1.  Hacer push al repositorio
-1.  Activar GitHub pages
+2.  Conectar mi proyecto a GitHub
+3.  Tener un archivo en html llamado "index.html"
+4.  Hacer push al repositorio
+5.  Activar GitHub pages
 
 source('https://inkaverse.com/setup.r')
+
+# Modelo lineales mixtos
+
 #Anaisis de datos 
 
 # Importar datos
 
 ```{r}
-# formato csv
-dss <- read.csv(file = "datos 2/LA MOLINA 2014 POTATO WUE (FB) - fb.csv", header = TRUE, sep = "," )
 
-      
-        
+les <- read.csv(file ="LA MOLINA 2014 POTATO WUE (FB) - fb.csv" , header = TRUE, sep = "," )
 
+str(les)
 
 
+View(les)
+
+
+```
+# Modelo lineal
+```{r}
+
+modelo <- lm(formula = lfa ~ bloque + geno + riego +riego*geno , data = les)
+
+anova(modelo)
+str(les)
+
+
+```
+#box plot
+```{r}
+
+library(ggplot2)
+
+ggplot(les, aes(x = factor(geno), y = lfa, fill = factor(riego))) +
+  geom_boxplot() +
+  labs(x = "genotipo" , y = "LFA" , fill = "riego") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ggtitle("Boxplot de LFA por genotipo y riego")
+  
+
+```
+# Comparación De Medias
+```{r}
+
+library(agricolae)
+library(tidyverse)
+
+#  comparación de medias para el factor geno
+cat("Comparación de medias para geno:\n")
+tukey_geno <- HSD.test(modelo, "geno", group = TRUE)
+print(tukey_geno)
+
+# comparación de medias para el factor riego
+cat("Comparación de medias para riego:\n")
+tukey_riego <- HSD.test(modelo, "riego", group = TRUE)
+print(tukey_riego)
+
+# para la interaccion geno:riego
+cat("Comparación de medias para la interacción geno:riego:\n")
+tukey_interaccion <- HSD.test(modelo, c("riego", "geno"), group = TRUE)
+print(tukey_interaccion)
+
+
+str (tukey_interaccion)
+
+mc <- tukey_interaccion$groups %>% 
+  rownames_to_column("trat") %>% 
+  separate(trat, c("riego", "variedad"))
+
+str (mc)
+
+
+```
+### Gráfico en ggplot2
+```{r}
+
+library(ggplot2)
+
+
+# Crear el gráfico de barras con ggplot2
+
+
+ggplot(mc, aes(x = variedad, y = lfa, fill = riego)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +   # Barras agrupadas por riego
+  geom_text(aes(label = groups), position = position_dodge(0.9), vjust = -0.5) + # Etiquetas de los grupos sobre las barras
+  labs(title = "Producción por Variedad y Riego", x = "Variedad", y = "LFA") +   # Etiquetas de los ejes y título
+  scale_fill_manual(values = c("irrigado" = "tomato", "sequia" = "turquoise3")) + # Colores personalizados para riego
+  theme_minimal() +  # Tema minimalista
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotar etiquetas del eje X
+  
+
+```
+## comparacion de medias: emmeans
+```{r}
+
+library(emmeans)
+mc <- emmeans(modelo,~ riego*geno)
+mc <- emmeans(modelo, ~ riego|geno) 
+
+mc <- emmeans(modelo, ~ riego|geno) %>% 
+  as.data.frame()
+
+mc
+
+```
+### plot
+```{r}
+
+ggplot(mc, aes(x = geno, y = emmean, fill = riego)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  # geom_text(aes(label = emmean), position = position_dodge(0.9), vjust = -0.5) +
+  labs(x = "Variedad", y = "LFA", fill = "Riego") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+# Análisis multivariado (Mas de 2 variables): Por correlación y PCA
+
+## Análisis de correlación
+```{r}
+
+variables_cuantitativas <- les[, c("lfa", "hi", "leafdw", "wue")]
+
+matriz_correlacion <- cor(variables_cuantitativas, method = "pearson")
+
+print(matriz_correlacion)
+
+library(corrplot)
+corrplot(matriz_correlacion, method = "circle", type = "upper", 
+         tl.col = "black", tl.srt = 45, 
+         title = "Matriz de Correlación", mar = c(0, 0, 1, 0))
+         
+```
+
+```{r}
+
+library(tidyverse)
+library(psych)
+
+les %>%
+  select_if(is.numeric) %>%
+  dplyr::select(!c("block")) %>%
+  pairs.panels(
+    x = .,
+    hist.col = "Blue",
+  
+    pch = 21,
+    stars = TRUE,
+    scale = FALSE,
+    lm = TRUE
+  )
+
+
+```
+## PCA análisis de componentes principales
+```{r}
+
+variables_cuantitativas <- les[sapply(les, is.numeric)]
+
+variables_cuantitativas_estandarizadas <- scale(variables_cuantitativas)
+
+pca_result <- prcomp(variables_cuantitativas_estandarizadas, center = TRUE, scale. = TRUE)
+summary(pca_result)
+screeplot(pca_result, type = "lines", main = "Scree Plot")
+
+library(ggplot2)
+
+biplot(pca_result, main = "Biplot del PCA", cex = 0.7)
+
+library(ggfortify)
+
+autoplot(pca_result, data = les, colour = 'black', loadings = TRUE, loadings.label = TRUE, 
+         loadings.label.size = 3, main = "Gráfico de Componentes Principales")
+
+
+```
+### PCA DOS EN UNO
+```{r}
+
+library(FactoMineR)
+library(cowplot)
+
+mv <- les %>%
+  group_by(riego, geno) %>%
+  summarise(across(where(is.numeric), ~ mean(., na.rm = TRUE))) %>%
+  PCA(scale.unit = T, quali.sup = c(1:4), graph = F)
+
+p1 <- plot(mv,
+           choix="ind",
+           habillage=1,
+           label = "ind")
+
+p2 <- plot(mv,
+           choix="var")
+
+list(p1, p2) %>%
+  plot_grid(plotlist = ., nrow = 1)
+  
+  
+  
+```
+
+
+
+
+
+
+
+```
 
